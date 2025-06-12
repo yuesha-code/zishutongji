@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>免費高級字數統計工具</title>
+<style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3f37c9;
+      --accent-color: #4895ef;
+      --light-color: #f8f9fa;
+      --dark-color: #212529;
+      --neutral-color: #6c757d;
+      --success-color: #4cc9f0;
+      --bg-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .input-section {
+      background-color: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .input-section:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-upload {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .file-upload label {
+      display: inline-block;
+      background-color: var(--accent-color);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .file-upload label:hover {
+      background-color: #3a86ff;
+    }
+
+    .file-upload input[type="file"] {
+      display: none;
+    }
+
+    .file-upload p {
+      margin-top: 0.5rem;
+      color: var(--neutral-color);
+      font-size: 0.9rem;
+    }
+
+    .textarea-container {
+      position: relative;
+    }
+
+    .textarea-container textarea {
+      width: 96%;
+      height: 200px;
+      padding: 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      transition: border-color 0.3s ease;
+    }
+
+    .textarea-container textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+
+    .word-count-btn {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 0.8rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .word-count-btn:hover {
+      background-color: #3a0ca3;
+    }
+
+    .word-count-btn:active {
+      transform: scale(0.98);
+    }
+
+    .results-section {
+       margin-top:10px;
+      background-color: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .results-section h2 {
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .stat-card {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      transition: background-color 0.3s ease;
+      height:100px;
+    }
+
+    .stat-card:hover {
+      background-color: #f0f0f0;
+    }
+
+    .stat-card h3 {
+      font-size: 0.9rem;
+      color: var(--neutral-color);
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-card p {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--dark-color);
+    }
+
+    .footer {
+      background-color: var(--dark-color);
+      color: white;
+      text-align: center;
+      padding: 1rem 0;
+      margin-top: 2rem;
+    }
+
+    .footer p {
+      opacity: 0.8;
+    }
+
+    .footer a {
+      color: var(--success-color);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: var(--success-color);
+      color: white;
+      padding: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 新增：添加 mr-2 類的定義 */
+    .mr-2 {
+      margin-right: 0.5rem;
+    }
+
+    /* 動畫效果 */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+      <section class="input-section">
+        <div class="file-upload">
+          <label for="file-input">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <line x1="10" y1="9" x2="8" y2="9"></line>
+            </svg>
+            上傳文本文件
+          </label>
+          <input type="file" id="file-input" accept=".txt,.md,.html">
+          <p>支持TXT、MD、HTML等格式</p>
+        </div>
+        
+        <div class="textarea-container">
+          <textarea id="text-input" placeholder="請在此輸入或粘貼您的文本内容..."></textarea>
+        </div>
+        
+        <button id="count-btn" class="word-count-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          開始統計
+        </button>
+      </section>
+
+      <section class="results-section">
+        <h2>統計結果</h2>
+        <div class="stats-grid">
+          <div class="stat-card fade-in">
+            <h3>總字符數</h3>
+            <p id="total-chars">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>中文字符</h3>
+            <p id="chinese-chars">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>英文字符</h3>
+            <p id="english-chars">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>數字字符</h3>
+            <p id="numbers">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>中文标點</h3>
+            <p id="chinese-punctuation">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>英文标點</h3>
+            <p id="english-punctuation">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>空格/制表符</h3>
+            <p id="whitespace">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>段落數</h3>
+            <p id="paragraphs">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>單詞數</h3>
+            <p id="words">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>句子數</h3>
+            <p id="sentences">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>平均詞長</h3>
+            <p id="avg-word-length">0</p>
+          </div>
+          <div class="stat-card fade-in">
+            <h3>平均句長</h3>
+            <p id="avg-sentence-length">0</p>
+          </div>
+        </div>
+      </section>
+        <div id="notification" class="notification">
+    文件已成功加載！
+  </div>
+<script src="js.js"></script>
+
+</body>
+</html>
