@@ -1,3 +1,0 @@
-apple (重复 6 次)
-date (重复 6 次)
-banana (重复 3 次)
